@@ -1,9 +1,9 @@
 const Tour = require("../models/tourModel");
 const mongoose=require('mongoose');
 // GET /tours
-const getAllTours = (req, res) => {
+const getAllTours =async (req, res) => {
   try{
-    const tours = Tour.find({}).sort({createdAt: -1});
+    const tours =await Tour.find({}).sort({createdAt: -1});
     res.status(200).json(tours);
   }catch(error){
     res.status(500).json({message:'Failed to retrieve tours.'});
@@ -12,7 +12,7 @@ const getAllTours = (req, res) => {
 
 // POST /tours
 const createTour = (req, res) => {
-  const newTour = Tour.addOne({ ...req.body }); // Spread the req.body object
+  const newTour = Tour.create({ ...req.body }); // Spread the req.body object
 
   if (newTour) {
     res.status(201).json(newTour); // 201 Created
@@ -24,7 +24,7 @@ const createTour = (req, res) => {
  
 // GET /tours/:tourId
 const getTourById = async (req, res) => {
-  const {tourId} = req.params.tourId;
+  const {tourId} = req.params;
 
   if (!mongoose.Types.ObjectId.isValid(tourId)) {
     return res.status(400).json({ message: "Invalid tour ID" });
@@ -73,11 +73,11 @@ const deleteTour=async(req,res)=>{
     return res.status(400).json({message:'invalid tour id'});
   }
   try{
-    const deletedTour=await Tour.findOneAndDelete({_id:tourId});
-    if(deletedTour){
-      res.status(200).json({ message: "Tour deleted successfully" });
-    } else {
+    const deletedTour=await Tour.findByIdAndDelete(tourId);
+    if(!deletedTour){
       res.status(404).json({ message: "Tour not found" });
+    } else {
+      res.status(204).send();
     }
   }catch(error){
     res.status(500).json({message:'failed to delete tour'});
